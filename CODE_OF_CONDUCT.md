@@ -48,7 +48,7 @@ Para respostas a perguntas comuns sobre este código de conduta, veja https://ww
 
 Se você tiver dúvidas sobre este Código de Conduta, entre em contato conosco:
 
-- **Email**: [INSERIR EMAIL]
+- **Email**: julio@grupojpc.com.br
 - **Issues**: Use a tag `[CONDUCT]` nas issues relacionadas ao código de conduta
 - **Discussions**: Use a categoria "Código de Conduta" nas discussões
 
