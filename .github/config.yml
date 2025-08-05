@@ -1,0 +1,21 @@
+# Configuração para templates de issues e pull requests
+# Este arquivo configura como os templates são exibidos no GitHub
+
+# Configuração para templates de issues
+blank_issues_enabled: false
+contact_links:
+  - name: 📚 Documentação
+    url: https://github.com/julioamorimdev/botsendform#readme
+    about: Consulte a documentação antes de abrir uma issue
+  - name: 💬 Discussões
+    url: https://github.com/julioamorimdev/botsendform/discussions
+    about: Faça perguntas e participe de discussões gerais
+  - name: 🐛 Bug Report
+    url: https://github.com/julioamorimdev/botsendform/issues/new?template=bug_report.md
+    about: Reporte um bug ou problema
+  - name: 💡 Feature Request
+    url: https://github.com/julioamorimdev/botsendform/issues/new?template=feature_request.md
+    about: Sugira uma nova funcionalidade
+  - name: ❓ Pergunta
+    url: https://github.com/julioamorimdev/botsendform/issues/new?template=question.md
+    about: Faça uma pergunta sobre o projeto 

@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Bot - Test Form</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 600px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 0.95em;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+            transform: scale(1.2);
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .form-info {
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            text-align: center;
+        }
+
+        .field-ids {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .field-ids h4 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .field-ids ul {
+            list-style: none;
+        }
+
+        .field-ids li {
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 20px;
+                margin: 10px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Form Bot Test</h1>
+            <p>Teste o bot de preenchimento automático de formulários</p>
+        </div>
+
+        <div class="form-info">
+            <strong>⚠️ Formulário de Teste</strong><br>
+            Este formulário é usado para testar o Form Bot. Os dados não serão realmente enviados.
+        </div>
+
+        <form id="contact-form">
+            <div class="form-group">
+                <label for="jform_contact_name">Nome Completo *</label>
+                <input type="text" id="jform_contact_name" name="name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="jform_contact_email">E-mail *</label>
+                <input type="email" id="jform_contact_email" name="email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="jform_contact_emailmsg">Assunto *</label>
+                <input type="text" id="jform_contact_emailmsg" name="subject" required>
+            </div>
+
+            <div class="form-group">
+                <label for="jform_contact_message">Mensagem *</label>
+                <textarea id="jform_contact_message" name="message" required></textarea>
+            </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="jform_consentbox0" name="consent" required>
+                <label for="jform_consentbox0">
+                    Concordo com os termos e condições de uso
+                </label>
+            </div>
+
+            <button type="submit" class="submit-btn">
+                Enviar Mensagem
+            </button>
+        </form>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Processando...</p>
+        </div>
+
+        <div class="success-message" id="success-message">
+            ✅ Formulário enviado com sucesso! (Simulação)
+        </div>
+
+        <div class="error-message" id="error-message">
+            ❌ Erro ao enviar formulário. Tente novamente.
+        </div>
+
+        <div class="field-ids">
+            <h4>IDs dos Campos (para configuração do bot):</h4>
+            <ul>
+                <li><strong>Nome:</strong> jform_contact_name</li>
+                <li><strong>E-mail:</strong> jform_contact_email</li>
+                <li><strong>Assunto:</strong> jform_contact_emailmsg</li>
+                <li><strong>Mensagem:</strong> jform_contact_message</li>
+                <li><strong>Consentimento:</strong> jform_consentbox0</li>
+                <li><strong>Botão Enviar:</strong> contact-form</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('contact-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('success-message').style.display = 'none';
+            document.getElementById('error-message').style.display = 'none';
+            
+            // Simulate form submission
+            setTimeout(function() {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('success-message').style.display = 'block';
+                
+                // Reset form after 3 seconds
+                setTimeout(function() {
+                    document.getElementById('contact-form').reset();
+                    document.getElementById('success-message').style.display = 'none';
+                }, 3000);
+            }, 2000);
+        });
+
+        // Add some sample data for testing
+        function fillSampleData() {
+            document.getElementById('jform_contact_name').value = 'João Silva';
+            document.getElementById('jform_contact_email').value = 'joao@example.com';
+            document.getElementById('jform_contact_emailmsg').value = 'Teste do Form Bot';
+            document.getElementById('jform_contact_message').value = 'Esta é uma mensagem de teste para verificar o funcionamento do Form Bot.';
+            document.getElementById('jform_consentbox0').checked = true;
+        }
+
+        // Add button to fill sample data (for development)
+        const sampleButton = document.createElement('button');
+        sampleButton.textContent = 'Preencher Dados de Teste';
+        sampleButton.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        `;
+        sampleButton.onclick = fillSampleData;
+        document.body.appendChild(sampleButton);
+    </script>
+</body>
+</html> 

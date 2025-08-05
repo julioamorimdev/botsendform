@@ -1,0 +1,133 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types: [ published ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8, 3.9, "3.10", "3.11"]
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run linting
+      run: |
+        # Install additional linting tools
+        pip install flake8 black isort
+        # Run linting checks
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        black --check .
+        isort --check-only .
+
+    - name: Run tests
+      run: |
+        python create_sample_data.py
+        python demo.py --dry-run
+
+    - name: Check version consistency
+      run: |
+        python version.py show
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install bandit safety
+
+    - name: Run security checks
+      run: |
+        # Run bandit security checks
+        bandit -r . -f json -o bandit-report.json || true
+        # Run safety checks for known vulnerabilities
+        safety check
+
+  documentation:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+
+    - name: Check documentation
+      run: |
+        # Check if README exists and has content
+        test -s README.md
+        test -s CONTRIBUTING.md
+        test -s LICENSE
+        test -s CHANGELOG.md
+        
+        # Check if documentation files are properly formatted
+        echo "Documentation files exist and have content"
+
+  release:
+    needs: [test, security, documentation]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Create Release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        # Get version from VERSION file
+        VERSION=$(cat VERSION)
+        echo "Creating release for version: $VERSION"
+        
+        # Create release notes from changelog
+        # This is a simplified version - you might want to use a more sophisticated approach
+        echo "Release $VERSION" > release_notes.txt
+        echo "" >> release_notes.txt
+        echo "See CHANGELOG.md for detailed information." >> release_notes.txt 

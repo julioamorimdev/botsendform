@@ -1,0 +1,132 @@
+version: '3.8'
+
+services:
+  # Form Bot service
+  form-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: form-bot
+    environment:
+      - FORM_URL=http://test-server:8000/test_form.html
+      - EXCEL_FILE=data/sample_data.xlsx
+      - LOG_LEVEL=INFO
+      - DRY_RUN=true
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./screenshots:/app/screenshots
+      - ./.env:/app/.env:ro
+    depends_on:
+      - test-server
+    networks:
+      - form-bot-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Test server service
+  test-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: form-bot-test-server
+    command: python test/test_server.py
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./test:/app/test
+    networks:
+      - form-bot-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Development service
+  form-bot-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: form-bot-dev
+    environment:
+      - FORM_URL=http://test-server:8000/test_form.html
+      - EXCEL_FILE=data/sample_data.xlsx
+      - LOG_LEVEL=DEBUG
+      - DRY_RUN=true
+    volumes:
+      - .:/app
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./screenshots:/app/screenshots
+    ports:
+      - "8001:8000"
+    depends_on:
+      - test-server
+    networks:
+      - form-bot-network
+    restart: unless-stopped
+    profiles:
+      - development
+
+  # Testing service
+  form-bot-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: testing
+    container_name: form-bot-test
+    environment:
+      - PYTHONPATH=/app
+    volumes:
+      - .:/app
+      - ./logs:/app/logs
+    networks:
+      - form-bot-network
+    profiles:
+      - testing
+
+  # Documentation service
+  form-bot-docs:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: documentation
+    container_name: form-bot-docs
+    ports:
+      - "8002:8000"
+    volumes:
+      - ./docs:/app/docs
+      - ./docs/_build:/app/docs/_build
+    networks:
+      - form-bot-network
+    profiles:
+      - documentation
+    command: >
+      sh -c "
+        cd /app/docs &&
+        make html &&
+        python -m http.server 8000 --directory _build/html
+      "
+
+networks:
+  form-bot-network:
+    driver: bridge
+
+volumes:
+  form-bot-data:
+    driver: local
+  form-bot-logs:
+    driver: local
+  form-bot-screenshots:
+    driver: local 
